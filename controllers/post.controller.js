@@ -7,7 +7,7 @@ const ErrorResponse = require('../utils/ErrorResponse')
 // @access: Public
 // -----------------------------------------------
 exports.list = async (req, res) => {
-  const data = await Post.find()
+  const data = await Post.find().populate('categoryId', 'name')
   res.status(200).json({
     success: true,
     data,
@@ -23,7 +23,7 @@ exports.read = async (req, res) => {
   const slug = req.params.slug
   //   const data = await Post.findById(id)
 
-  const data = await Post.findOne({ slug })
+  const data = await Post.findOne({ slug }).populate('categoryId', 'name')
 
   if (!data) throw new ErrorResponse(404, 'Post not found')
 
@@ -42,15 +42,14 @@ exports.create = async (req, res) => {
   //   const post = req.body
   //   const data = await Post.create(post)
 
-  const post = new Post(req.body)
-  if (!post.title || !post.content)
-    throw new ErrorResponse(400, 'Missing title or content field')
+  // if (!req?.body?.title || !req?.body?.content)
+  //   throw new ErrorResponse(400, 'Missing title or content field')
 
-  const data = await post.save()
+  const post = await Post.create(req.body)
 
   res.status(201).json({
     success: true,
-    data,
+    data: await post.populate('categoryId', 'name'),
   })
 }
 

@@ -23,7 +23,7 @@ app.all('/', (req, res) => {
 })
 
 // Routes
-app.use('/api/posts', require('./routes/post.routes'))
+app.use(require('./routes'))
 
 // Express ErrorHandler
 app.use(require('./middlewares/errorHandler'))
