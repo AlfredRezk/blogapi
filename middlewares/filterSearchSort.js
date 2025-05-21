@@ -19,8 +19,8 @@ module.exports = (req, res, next) => {
   // asc: Ascending A-Z, desc:Descending Z-A
   const sort = qs.parse(req.query).sort || {}
 
-  // Select
-  const select = qs.parse(req.query).select || {}
+  // Select=values
+  const select = qs.parse(req.query).select || ''
   // convert from ',' to ' '
   const fields = select.split(',').join(' ')
 
