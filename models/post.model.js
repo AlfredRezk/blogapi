@@ -23,6 +23,11 @@ const postSchema = new Schema(
       ref: 'Category',
       required: [true, 'Category is required'],
     },
+    author: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Author is required'],
+    },
 
     // author: {
     //   type: Schema.Types.ObjectId,

@@ -15,7 +15,9 @@ function sendResponse(res, status, data) {
 // @access: Public
 // -----------------------------------------------
 exports.list = async (req, res) => {
-  const data = await User.find()
+  if (req.user?.role !== 'admin')
+    throw new ErrorResponse(401, 'You are not authorized to access this route')
+  const data = await res.getModelList(User)
   sendResponse(res, 200, data)
 }
 
@@ -54,7 +56,11 @@ exports.create = async (req, res) => {
   // const hashedPassword = passwordEncrypt(req.body.password)
   // req.body.password = hashedPassword
   // Create the user
-  const data = await User.create(req.body)
+  const user = await User.create(req.body)
+  const data = await User.findOne({ _id: user._id.toString() }).select(
+    '-password -__v',
+  )
+
   sendResponse(res, 201, data)
 }
 

@@ -7,10 +7,21 @@ const ErrorResponse = require('../utils/ErrorResponse')
 // @access: Public
 // -----------------------------------------------
 exports.list = async (req, res) => {
-  const data = await Post.find().populate('categoryId', 'name')
+  const data = await res.getModelList(Post, [
+    { path: 'categoryId', select: 'name' },
+    { path: 'author', select: 'firstName lastName email' },
+  ])
+  // const data = await Post.find().populate('categoryId', 'name')
+  // Remove _id from populated data
+  data.forEach((post) => {
+    post.categoryId = { ...post.categoryId, _id: undefined }
+    post.author = { ...post.author, _id: undefined }
+  })
+
   res.status(200).json({
     success: true,
     data,
+    details: await res.getModelListDetails(Post),
   })
 }
 
@@ -45,6 +56,9 @@ exports.create = async (req, res) => {
   // if (!req?.body?.title || !req?.body?.content)
   //   throw new ErrorResponse(400, 'Missing title or content field')
 
+  // Automaticaly add user id
+  req.body.author = req.user._id
+
   const post = await Post.create(req.body)
 
   res.status(201).json({
@@ -60,6 +74,17 @@ exports.create = async (req, res) => {
 // -----------------------------------------------
 exports.update = async (req, res) => {
   const slug = req.params.slug
+
+  // check if the current user is the author of the post or an admin
+  // Find the post by slug => post author id
+  const post = await Post.findOne({ slug })
+
+  if (
+    req.user?._id.toString() !== post.author.toString() &&
+    req.user?.role !== 'admin'
+  )
+    throw new ErrorResponse(401, 'You are not authorized to update this post')
+
   const data = await Post.updateOne({ slug }, req.body)
 
   //   const data = await Post.findByIdAndUpdate(id, req.body, {
@@ -86,6 +111,14 @@ exports.update = async (req, res) => {
 // -----------------------------------------------
 exports.remove = async (req, res) => {
   const slug = req.params.slug
+
+  const post = await Post.findOne({ slug })
+  if (
+    req.user?._id.toString() !== post.author.toString() &&
+    req.user?.role !== 'admin'
+  )
+    throw new ErrorResponse(401, 'You are not authorized to delete this post')
+
   const { deletedCount } = await Post.deleteOne({ slug })
 
   // const data = await Post.findOneAndDelete({ _id: id })

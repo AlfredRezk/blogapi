@@ -1,5 +1,5 @@
 const { model, Schema } = require('mongoose')
-const { genSalt, hash, hashSync } = require('bcryptjs')
+const { genSalt, hash, compare } = require('bcryptjs')
 const passwordEncrypt = require('../utils/passwordEncrypt')
 
 const userSchema = new Schema({
@@ -24,7 +24,13 @@ const userSchema = new Schema({
     trim: true,
     required: true,
     // set: (password) => passwordEncrypt(password),
-    set: (password) => hashSync(password, 12),
+    // set: (password) => hashSync(password, 12),
+    // select: false,
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
   },
 })
 
@@ -32,16 +38,22 @@ const userSchema = new Schema({
 //     /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi.test(email),
 // 'Email already exists')
 
-// userSchema.pre('save', async function (next) {
-//   // Encrypt password
-//   const salt = await genSalt(12)
-//   // const hashedPassword = await hash(this.password, salt)
-//   // this.password = hashedPassword
-//   this.password = await hash(this.password, salt)
-//   next()
-// })
+userSchema.pre('save', async function (next) {
+  // Encrypt password
+  const salt = await genSalt(12)
+  // const hashedPassword = await hash(this.password, salt)
+  // this.password = hashedPassword
+  this.password = await hash(this.password, salt)
+  next()
+})
 
 // userSchema.pre('save', async function (next) {
 //   this.password = passwordEncrypt(this.password)
 // })
+
+// Adding custome methods
+userSchema.methods.checkPassword = async function (password) {
+  return await compare(password, this.password)
+}
+
 module.exports = model('User', userSchema)

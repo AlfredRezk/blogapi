@@ -1,8 +1,9 @@
 const userCtlr = require('../controllers/user.controller')
 const router = require('express').Router()
+const isAuth = require('../middlewares/isAuth')
 
 // URL : http://localhost:8080/api/users/
-router.route('/').get(userCtlr.list).post(userCtlr.create)
+router.route('/').get(isAuth, userCtlr.list).post(userCtlr.create)
 
 // URL : http://localhost:8080/api/users/:userId
 router
